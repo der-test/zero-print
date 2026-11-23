@@ -1,0 +1,33 @@
+{
+  "app_name": "Zero Print",
+  "package_name": "zero-print",
+  "version": "0.1.10",
+  "description": "Capture and print photos on BLE and USB thermal printers.",
+
+  "store": {
+    "summary": "Capture a photo, dither it, and print over BLE or USB.",
+    "description": "Zero Print turns a CardputerZero photo into a monochrome thermal print. Choose an MX06 BLE printer or a USB ESC/POS printer, then select Floyd-Steinberg, Atkinson, or threshold dithering before printing.",
+    "categories": ["Creative & Office", "Media"],
+    "screenshots": [
+      "screenshot/zero-print-home.png",
+      "screenshot/zero-print-settings.png"
+    ],
+    "icon": "assets/images/zero-print.png",
+    "license": "MIT",
+    "source_repo": "https://github.com/der-test/zero-print",
+    "author": {
+      "github": "der-test",
+      "display_name": "der-test"
+    },
+    "share_code": "ZPRT",
+    "permissions": {
+      "camera": true,
+      "microphone": false,
+      "imu": false,
+      "network": true,
+      "additional_hardware": true,
+      "background_service": false,
+      "external_display": false
+    }
+  }
+}

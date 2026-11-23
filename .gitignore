@@ -1,0 +1,14 @@
+.DS_Store
+.vscode/
+/agents.md
+/agents-zero-print.md
+/inspiration/
+**/.agents/
+
+**/build/
+**/dist/
+**/.cache/
+**/cmake-build-*/
+**/vcpkg_installed/
+*.factory.bin
+*.log

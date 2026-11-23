@@ -1,0 +1,64 @@
+name: Release Debian package
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build and publish ARM64 package
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends \
+            dpkg-dev \
+            g++-aarch64-linux-gnu \
+            gcc-aarch64-linux-gnu \
+            ninja-build \
+            python3-venv
+
+      - name: Install CMake 3.31+
+        run: |
+          python3 -m venv "$RUNNER_TEMP/cmake-venv"
+          "$RUNNER_TEMP/cmake-venv/bin/python" -m pip install "cmake>=3.31,<4"
+          echo "$RUNNER_TEMP/cmake-venv/bin" >> "$GITHUB_PATH"
+
+      - name: Validate release version
+        run: |
+          set -euo pipefail
+          tag_version="${GITHUB_REF_NAME#v}"
+          project_version="$(sed -nE 's/^project\(zero-print VERSION ([^ )]+).*/\1/p' app/zero-print/CMakeLists.txt)"
+          metadata_version="$(python3 -c 'import json, pathlib; print(json.loads(pathlib.Path("app/zero-print/app-builder.json").read_text())["version"])')"
+          if [[ -z "$project_version" || "$tag_version" != "$project_version" || "$tag_version" != "$metadata_version" ]]; then
+            printf 'Release tag %s must match CMake version %s and app-builder version %s.\n' \
+              "$GITHUB_REF_NAME" "$project_version" "$metadata_version" >&2
+            exit 1
+          fi
+
+      - name: Build Debian package
+        working-directory: app/zero-print
+        run: cmake --workflow --preset cp0-cross-package
+
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          packages=(app/zero-print/dist/zero-print_*_rev1_arm64.deb)
+          if (( ${#packages[@]} != 1 )); then
+            printf 'Expected exactly one ARM64 package, found %s.\n' "${#packages[@]}" >&2
+            exit 1
+          fi
+          gh release create "$GITHUB_REF_NAME" "${packages[@]}" \
+            --verify-tag \
+            --generate-notes
